@@ -1,0 +1,81 @@
+name: Sync to Public Repo
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    # 手动触发
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    if: github.repository != 'Shuanglin00/ai-studio-a'
+    steps:
+      - name: Checkout private repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get version from commit message
+        id: version
+        run: |
+          # 获取最新提交的完整信息
+          COMMIT_MSG=$(git log -1 --format="%B")
+          echo "Commit message: $COMMIT_MSG"
+
+          # 检查是否包含 tag:{version} 格式
+          if echo "$COMMIT_MSG" | grep -qE 'tag:([0-9]+\.[0-9]+\.[0-9]+)'; then
+            VERSION=$(echo "$COMMIT_MSG" | grep -oE 'tag:([0-9]+\.[0-9]+\.[0-9]+)' | sed 's/tag://')
+            echo "Found version: $VERSION"
+            echo "commit_message=$VERSION" >> $GITHUB_OUTPUT
+          else
+            # 使用完整 commit message 作为版本
+            FULL_MSG=$(echo "$COMMIT_MSG" | head -1)
+            echo "No tag found, using commit message: $FULL_MSG"
+            echo "commit_message=$FULL_MSG" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Filter Sensitive Data
+        run: |
+          # 过滤 config/ 目录下的敏感信息
+          find config -name "*.yaml" -o -name "*.yml" | xargs sed -i \
+            -e 's/192\.168\.209\.128/${DEV_SERVER_HOST}/g' \
+            -e 's/AIzaSy[0-9A-Za-z_-]*/${GEMINI_API_KEY}/g' \
+            -e 's/sk-[0-9a-f]{32}/${QWEN_API_KEY}/g' \
+            -e 's/your_api_key/${MINIMAX_API_KEY}/g' \
+            -e 's/password:.*/password: ${DB_PASSWORD}/g' \
+            -e 's/example/${MONGODB_PASSWORD}/g' \
+            -e 's/neo4j123/${NEO4J_PASSWORD}/g'
+
+      - name: Sync to Public Repo
+        run: |
+          # 创建临时目录
+          mkdir -p /tmp/public-repo
+          cd /tmp/public-repo
+
+          # 克隆公开仓库
+          git clone https://x-access-token:${{ secrets.PUBLIC_REPO_TOKEN }}@github.com/Shuanglin00/ai-studio-a.git .
+          git checkout main || git checkout -b main
+
+          # 配置 Git
+          git config user.name "GitHub Bot"
+          git config user.email "bot@github.com"
+
+          # 获取私有仓库内容
+          cd $GITHUB_WORKSPACE
+          tar --exclude='.git' -czf /tmp/source.tar.gz .
+          cd /tmp/public-repo
+
+          # 解压并覆盖
+          tar -xzf /tmp/source.tar.gz
+
+          # 使用版本号作为 commit message
+          COMMIT_MSG="${{ steps.version.outputs.commit_message }}"
+
+          # 提交并强制推送
+          git add -A
+          git commit -m "$COMMIT_MSG" || echo "No changes to commit"
+          git push -f origin main
+
+          echo "Sync completed successfully"
+          echo "Version: $COMMIT_MSG"

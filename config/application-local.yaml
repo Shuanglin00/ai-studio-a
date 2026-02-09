@@ -12,7 +12,7 @@ spring:
       database: catBot
       auto-index-creation: false
       username: root
-      password: ${MONGODB_PASSWORD}
+      password: ${DB_PASSWORD}
       authentication-database: admin
     redis:
       host: localhost
@@ -49,7 +49,7 @@ milvus:
 neo4j:
   uri: bolt://localhost:7687
   username: neo4j
-  password: ${NEO4J_PASSWORD}
+  password: ${DB_PASSWORD}
 
 onebot:
   api:

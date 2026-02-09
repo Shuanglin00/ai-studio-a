@@ -19,7 +19,6 @@ import java.io.Serializable;
  章节实体类
  */
 public class Chapter extends BaseEntity implements Serializable {
-  // 生成一个实体类 需要使用私有定义变量，使用lombok  private String content;
   /**
    * 章节ID
    */

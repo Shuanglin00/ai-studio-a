@@ -7,15 +7,15 @@ spring:
     name: catBot-sit
   data:
     mongodb:
-      host: 192.168.209.128
+      host: ${DEV_SERVER_HOST}
       port: 27017
       database: catBot_sit
       auto-index-creation: true
       username: root
-      password: ${MONGODB_PASSWORD}
+      password: ${DB_PASSWORD}
       authentication-database: admin
     redis:
-      host: 192.168.209.128
+      host: ${DEV_SERVER_HOST}
       port: 6379
 
 ai:
@@ -25,13 +25,13 @@ ai:
     qwen:
       api-key: ${QWEN_API_KEY}
     ollama:
-      url: http://192.168.209.128:11434
+      url: http://${DEV_SERVER_HOST}:11434
       temperature: 0.5
   rag:
     max-results: 5
     min-score: 0.5
   service:
-    base-url: http://192.168.209.128:8081
+    base-url: http://${DEV_SERVER_HOST}:8081
     timeout: 30000
 
 train:
@@ -41,19 +41,19 @@ train:
     max-models: 10
 
 milvus:
-  host: 192.168.209.128
+  host: ${DEV_SERVER_HOST}
   port: 19530
   collection-name: message_embeddings_sit
   enable: true
 
 neo4j:
-  uri: bolt://192.168.209.128:7687
+  uri: bolt://${DEV_SERVER_HOST}:7687
   username: neo4j
-  password: ${NEO4J_PASSWORD}
+  password: ${DB_PASSWORD}
 
 onebot:
   api:
-    base-url: http://192.168.209.128:3000
+    base-url: http://${DEV_SERVER_HOST}:3000
     timeout: 5000
     retry:
       max-attempts: 3

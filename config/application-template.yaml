@@ -42,7 +42,7 @@ spring:
       port: 27017
       database: catBot   # 根据环境修改
       username: root
-      password: ${MONGODB_PASSWORD}
+      password: ${DB_PASSWORD}
       authentication-database: admin
       auto-index-creation: false
 
@@ -51,7 +51,7 @@ spring:
       uri: bolt://localhost:7687  # 根据环境修改
       authentication:
         username: neo4j
-        password: ${NEO4J_PASSWORD}
+        password: ${DB_PASSWORD}
 
 # ========================================
 # AI 模型配置 (LangChain4j)
