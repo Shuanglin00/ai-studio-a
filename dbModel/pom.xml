@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.shuanglin</groupId>
+        <artifactId>catBot</artifactId>
+        <version>1.0</version>
+    </parent>
+
+    <artifactId>dbModel</artifactId>
+
+    <properties>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <milvus.sdk.version>2.6.0</milvus.sdk.version>
+        <milvus-plus.starter.version>2.2.5</milvus-plus.starter.version>
+    </properties>
+    <dependencies>
+        <dependency>
+            <groupId>com.shuanglin</groupId>
+            <artifactId>common</artifactId>
+            <version>1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>2.13.1</version>
+        </dependency>
+        <dependency>
+            <groupId>io.milvus</groupId>
+            <artifactId>milvus-sdk-java</artifactId>
+            <version>${milvus.sdk.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.dromara.milvus-plus</groupId>
+            <artifactId>milvus-plus-boot-starter</artifactId>
+            <version>${milvus-plus.starter.version}</version>
+        </dependency>
+    </dependencies>
+
+</project>

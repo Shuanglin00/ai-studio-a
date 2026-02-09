@@ -1,0 +1,55 @@
+server:
+  port: 17100
+
+spring:
+  application:
+    name: bot
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+    mongodb:
+      host: ${MONGODB_HOST}
+      port: ${MONGODB_PORT}
+      database: ${MONGODB_DATABASE}
+      username: ${MONGODB_USERNAME}
+      password: ${MONGODB_PASSWORD}
+      authentication-database: admin
+  main:
+    allow-circular-references: true
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.neo4j.Neo4jAutoConfiguration
+  servlet:
+    multipart:
+      max-file-size: 20MB
+
+# OneBot11 API配置
+onebot:
+  api:
+    base-url: ${ONEBOT_API_URL}
+    timeout: 5000
+    retry:
+      max-attempts: 3
+      delay-ms: 1000
+      multiplier: 2.0
+
+# AI服务配置
+ai:
+  base-url: ${AI_SERVICE_URL}
+  timeout: 60000
+  connect-timeout: 5000
+  read-timeout: 60000
+
+# Bot框架配置
+bot:
+  framework:
+    permission:
+      enabled: true
+    compatibility:
+      legacy-mode: false
+  pig:
+    image-path: ${user.dir}/bot/src/main/resources/pigs
+  log:
+    path: ${user.dir}/../APPS/log
+    level: INFO

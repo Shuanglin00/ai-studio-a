@@ -1,0 +1,15 @@
+*/target
+target
+/.idea
+.idea
+.vscode
+
+# 模型缓存目录
+model-cache/
+
+# 日志文件
+*.log
+logs/
+
+# 临时文件
+*.tmp

@@ -1,0 +1,90 @@
+# DJL 模型服务配置
+# 在 ai 或 bot 模块的 application.yaml 中引用此配置
+#
+# 使用方式:
+# 1. 按 Bean 名称注入: @Qualifier("textModel.qwen-huggingface")
+# 2. 按类型注入默认模型: @Autowired private TextModel textModel;
+# 3. 使用 ModelProvider: @Autowired private ModelProvider modelProvider;
+#
+# Bean 命名规则: {type}.{modelName}
+# - textModel.qwen-huggingface -> TextModel
+# - embeddingModel.bge-huggingface -> EmbeddingModel
+# - rerankModel.bge-rerank -> RerankModel
+#
+# 默认模型 Bean:
+# - @Qualifier("defaultTextModel") -> 第一个配置的 TextModel
+# - @Qualifier("defaultEmbeddingModel") -> 第一个配置的 EmbeddingModel
+
+train:
+  model:
+    # 是否启用模型缓存
+    cache-enabled: true
+    # 模型缓存目录
+    cache-dir: ./model-cache
+    # 最大模型数量
+    max-models: 10
+
+    # 模型配置列表
+    models:
+      # Qwen HuggingFace 文本模型
+      qwen-huggingface:
+        name: qwen-huggingface
+        type: textModel
+        framework: huggingface
+        model-path: Qwen/Qwen2.5-7B-Instruct
+        version: latest
+        device: auto
+        threads: 4
+        parameters:
+          trust-remote-code: true
+
+      # BGE HuggingFace 嵌入模型
+      bge-huggingface:
+        name: bge-huggingface
+        type: embeddingModel
+        framework: huggingface
+        model-path: BAAI/bge-large-zh-v1.5
+        version: latest
+        device: auto
+        threads: 4
+
+      # Qwen GGUF 文本模型
+      qwen-gguf:
+        name: qwen-gguf
+        type: textModel
+        framework: gguf
+        model-path: ./models/qwen2.5-7b-instruct-q4_0.gguf
+        version: latest
+        device: auto
+        threads: 8
+        batch-size: 1
+
+      # Nomic GGUF 嵌入模型
+      nomic-gguf:
+        name: nomic-gguf
+        type: embeddingModel
+        framework: gguf
+        model-path: ./models/nomic-embed-text-v1.5.gguf
+        version: latest
+        device: auto
+        threads: 4
+
+      # BGE ONNX 嵌入模型
+      bge-onnx:
+        name: bge-onnx
+        type: embeddingModel
+        framework: onnx
+        model-path: ./models/bge-large-zh-v1.5
+        version: latest
+        device: auto
+        threads: 4
+
+      # BGE HuggingFace 重排序模型
+      bge-rerank:
+        name: bge-rerank
+        type: rerankModel
+        framework: huggingface
+        model-path: BAAI/bge-reranker-base
+        version: latest
+        device: auto
+        threads: 4

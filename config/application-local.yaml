@@ -1,0 +1,76 @@
+# ========================================
+# Local 环境配置 - 开发测试用
+# ========================================
+
+spring:
+  application:
+    name: catBot-local
+  data:
+    mongodb:
+      host: localhost
+      port: 27017
+      database: catBot
+      auto-index-creation: false
+      username: root
+      password: ${MONGODB_PASSWORD}
+      authentication-database: admin
+    redis:
+      host: localhost
+      port: 6379
+
+ai:
+  model:
+    gemini:
+      api-key: ${GEMINI_API_KEY}
+    qwen:
+      api-key: ${QWEN_API_KEY}
+    ollama:
+      url: http://localhost:11434
+      temperature: 0.3
+  rag:
+    max-results: 3
+    min-score: 0.7
+  service:
+    base-url: http://localhost:8081
+    timeout: 30000
+
+train:
+  model:
+    cache-enabled: false
+    cache-dir: ./target/model-cache
+    max-models: 5
+
+milvus:
+  host: localhost
+  port: 19530
+  collection-name: message_embeddings_local
+  enable: false
+
+neo4j:
+  uri: bolt://localhost:7687
+  username: neo4j
+  password: ${NEO4J_PASSWORD}
+
+onebot:
+  api:
+    base-url: http://127.0.0.1:3000
+    timeout: 5000
+    retry:
+      max-attempts: 1
+      delay-ms: 500
+      multiplier: 1.0
+
+bot:
+  framework:
+    permission:
+      enabled: false
+  log:
+    level: DEBUG
+
+server:
+  port: 8080
+
+logging:
+  level:
+    root: INFO
+    com.shuanglin: DEBUG

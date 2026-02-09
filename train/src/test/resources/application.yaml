@@ -1,0 +1,25 @@
+# Train 模块测试配置
+
+train:
+  model:
+    cache-enabled: false
+    cache-dir: ./target/test-model-cache
+    max-models: 5
+    models:
+      qwen-huggingface:
+        name: qwen-huggingface
+        type: textModel
+        framework: huggingface
+        model-path: Qwen/Qwen2.5-1.5B-Instruct
+        version: latest
+        device: cpu
+        threads: 2
+
+      bge-huggingface:
+        name: bge-huggingface
+        type: embeddingModel
+        framework: huggingface
+        model-path: BAAI/bge-small-zh-v1.5
+        version: latest
+        device: cpu
+        threads: 2

@@ -1,0 +1,50 @@
+package com.shuanglin.ai.langchain4j.rag;
+
+import com.shuanglin.ai.langchain4j.config.vo.MilvusProperties;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+@EnableConfigurationProperties({MilvusProperties.class})
+public class MilvusEmbeddingStoreConfig {
+
+	/*	*/
+
+	/**
+	 * 在内存中嵌入存储
+	 *
+	 * @return {@code EmbeddingStore<TextSegment> }
+	 *//*
+	@Bean
+	public EmbeddingStore<TextSegment> inMemoryEmbeddingStore() {
+		return new InMemoryEmbeddingStore<>();
+	}*/
+//	@Bean
+//	public MilvusClientV2 milvusClient(MilvusProperties milvusProperties) {
+//		ConnectConfig config = ConnectConfig.builder()
+//				.uri(milvusProperties.getUri())
+//				.build();
+//
+//		return new MilvusClientV2(config);
+//	}
+
+//	@Bean
+//	public MilvusEmbeddingStore milvusEmbeddingStore() {
+//		// 替换为你的Milvus连接参数
+//		return MilvusEmbeddingStore.builder()
+//				.host(host)
+//				.port(port)
+//				.databaseName(defaultDatabaseName)
+//				.dimension(384)
+//				.collectionName(defaultCollectionName)
+//				.build();
+//	}
+//	@Bean
+//	public ContentRetriever milvusContentRetriever(MilvusEmbeddingStore milvusEmbeddingStore,
+//	                                               EmbeddingModel embeddingModel) {
+//		return EmbeddingStoreContentRetriever.builder()
+//				.embeddingStore(milvusEmbeddingStore)
+//				.embeddingModel(embeddingModel)
+//				.build();
+//	}
+}

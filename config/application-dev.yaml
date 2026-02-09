@@ -1,0 +1,72 @@
+# ========================================
+# Dev 环境配置 - 开发服务器
+# ========================================
+
+spring:
+  application:
+    name: catBot-dev
+  data:
+    redis:
+      host: 192.168.209.128
+      port: 6379
+    mongodb:
+      host: 192.168.209.128
+      port: 27017
+      database: botDB
+      username: root
+      password: ${MONGODB_PASSWORD}
+      authentication-database: admin
+
+ai:
+  model:
+    gemini:
+      api-key: ${GEMINI_API_KEY}
+    qwen:
+      api-key: ${QWEN_API_KEY}
+    ollama:
+      url: http://192.168.209.128:11434
+      temperature: 0.5
+  rag:
+    max-results: 5
+    min-score: 0.6
+  service:
+    base-url: http://192.168.209.128:8081
+    timeout: 30000
+
+train:
+  model:
+    cache-enabled: true
+    cache-dir: ./model-cache
+    max-models: 10
+
+milvus:
+  host: 192.168.209.128
+  port: 19530
+  collection-name: message_embeddings_dev
+  enable: true
+
+neo4j:
+  uri: bolt://192.168.209.128:7687
+  username: neo4j
+  password: ${NEO4J_PASSWORD}
+
+onebot:
+  api:
+    base-url: http://192.168.209.128:3000
+    timeout: 5000
+    retry:
+      max-attempts: 3
+      delay-ms: 1000
+      multiplier: 2.0
+
+bot:
+  framework:
+    permission:
+      enabled: true
+  log:
+    level: INFO
+
+logging:
+  level:
+    root: INFO
+    com.shuanglin: DEBUG

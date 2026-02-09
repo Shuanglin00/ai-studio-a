@@ -1,0 +1,65 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: ai
+  main:
+    allow-circular-references: true
+  data:
+    redis:
+      database: 1
+      host: ${REDIS_HOST}
+    mongodb:
+      host: ${MONGODB_HOST}
+      port: ${MONGODB_PORT}
+      database: ${MONGODB_DATABASE}
+      username: ${MONGODB_USERNAME}
+      password: ${MONGODB_PASSWORD}
+      authentication-database: admin
+    milvus:
+      url: ${MILVUS_URL}
+      host: ${MILVUS_HOST}
+      port: ${MILVUS_PORT}
+      defaultDatabaseName: ${MILVUS_DEFAULT_DATABASE}
+      defaultCollectionName: ${MILVUS_DEFAULT_COLLECTION}
+  servlet:
+    multipart:
+      max-file-size: 20MB
+  neo4j:
+    uri: ${NEO4J_URI}
+    authentication:
+      username: ${NEO4J_USERNAME}
+      password: ${NEO4J_PASSWORD}
+
+langchain4j:
+  models:
+    gemini:
+      apiKey: ${GEMINI_API_KEY}
+      modelName: gemini-2.0-flash
+      temperature: 0.7
+    qwen:
+      apiKey: ${QWEN_API_KEY}
+      location: us-central1
+      modelName: text-embedding-v2
+    ollama:
+      url: http://localhost:11434
+      modelName: gemma3:12b
+      temperature: 0.3
+      timeout: 600000
+    minimax:
+      baseUrl: https://api.minimaxi.com/v1
+      apiKey: ${MINIMAX_API_KEY}
+      modelName: MiniMax-M2
+      temperature: 0.7
+
+milvus:
+  uri: ${MILVUS_URL}
+  enable: true
+  open-log: true
+  db-name: ${MILVUS_DEFAULT_DATABASE}
+  packages:
+    - com.shuanglin.dao.milvus
+  top-k: 5
+  defaultDatabaseName: ${MILVUS_DEFAULT_DATABASE}
+  defaultCollectionName: ${MILVUS_DEFAULT_COLLECTION}

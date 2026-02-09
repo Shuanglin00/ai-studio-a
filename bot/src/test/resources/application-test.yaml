@@ -1,0 +1,41 @@
+server:
+  port: 7100
+
+spring:
+  application:
+    name: bot-test
+  main:
+    allow-circular-references: true
+  data:
+    redis:
+      database: 15
+      host: localhost
+    mongodb:
+      host: localhost
+      port: 27017
+      database: botDB_test
+      username: root
+      password: example
+      authentication-database: admin
+  servlet:
+    multipart:
+      max-file-size: 20MB
+
+onebot:
+  api:
+    base-url: http://localhost:3000
+    timeout: 5000
+    retry:
+      max-attempts: 3
+      delay-ms: 100
+      multiplier: 2.0
+
+bot:
+  framework:
+    permission:
+      enabled: true
+  pig:
+    image-path: ${user.dir}/../bot/src/main/resources/pigs
+  log:
+    path: ${user.dir}/../APPS/log
+    level: DEBUG

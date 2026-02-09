@@ -1,0 +1,77 @@
+# ========================================
+# Prod 环境配置 - 生产服务器
+# ========================================
+
+spring:
+  application:
+    name: catBot-prod
+  data:
+    mongodb:
+      host: 192.168.209.128
+      port: 27017
+      database: catBot
+      auto-index-creation: true
+      username: root
+      password: ${MONGODB_PASSWORD}
+      authentication-database: admin
+    redis:
+      host: 192.168.209.128
+      port: 6379
+
+ai:
+  model:
+    gemini:
+      api-key: ${GEMINI_API_KEY}
+    qwen:
+      api-key: ${QWEN_API_KEY}
+    ollama:
+      url: http://192.168.209.128:11434
+      temperature: 0.7
+  rag:
+    max-results: 10
+    min-score: 0.5
+  service:
+    base-url: http://localhost:8081
+    timeout: 60000
+
+train:
+  model:
+    cache-enabled: true
+    cache-dir: /data/model-cache
+    max-models: 20
+
+milvus:
+  host: 192.168.209.128
+  port: 19530
+  collection-name: message_embeddings
+  enable: true
+
+neo4j:
+  uri: bolt://192.168.209.128:7687
+  username: neo4j
+  password: ${NEO4J_PASSWORD}
+
+onebot:
+  api:
+    base-url: http://127.0.0.1:3000
+    timeout: 10000
+    retry:
+      max-attempts: 5
+      delay-ms: 2000
+      multiplier: 2.0
+
+bot:
+  framework:
+    permission:
+      enabled: true
+  log:
+    path: /data/log
+    level: INFO
+
+server:
+  port: 8080
+
+logging:
+  level:
+    root: WARN
+    com.shuanglin: INFO
