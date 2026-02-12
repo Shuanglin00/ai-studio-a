@@ -311,6 +311,77 @@ OneBot 消息发送支持自动重试（指数退避）：
 - `retcode` - 返回码
 - `messageId` - 消息 ID（发送成功时）
 
+## OneBot 11 API 客户端 (New)
+
+项目新增了完整的 OneBot 11 HTTP API 客户端封装，位于 `framework/onebot11/` 目录。
+
+### 架构概览
+
+```
+OneBot11Client (外观模式)
+    ├── MessageApi  - 消息相关 API
+    ├── GroupApi    - 群组相关 API
+    ├── UserApi     - 用户相关 API
+    ├── SystemApi   - 系统相关 API
+    ├── FileApi     - 文件相关 API (骨架)
+    └── OtherApi    - 其他 API (骨架)
+```
+
+### 使用示例
+
+```java
+@Autowired
+private OneBot11Client oneBotClient;
+
+// 发送群消息
+oneBotClient.message().sendGroupMessage(123456L, "Hello Group!");
+
+// 获取群列表
+List<GroupInfoResponse> groups = oneBotClient.group().getGroupList();
+
+// 禁言用户
+oneBotClient.group().setGroupBan(123456L, 111111L, 300);
+
+// 获取好友列表
+List<FriendInfoResponse> friends = oneBotClient.user().getFriendList();
+```
+
+### 配置项
+
+```yaml
+onebot11:
+  base-url: http://127.0.0.1:3000
+  access-token: your_token_here
+  connect-timeout: 5000
+  read-timeout: 10000
+  write-timeout: 10000
+  retry-enabled: true
+  max-retries: 3
+  retry-delay: 1000
+  retry-multiplier: 2.0
+```
+
+### API 覆盖情况
+
+| API 类别 | 方法数 | 状态 |
+|---------|-------|------|
+| MessageApi | 12+ | ✓ 完整实现 |
+| GroupApi | 20+ | ✓ 完整实现 |
+| UserApi | 10+ | ✓ 完整实现 |
+| SystemApi | 7 | ✓ 完整实现 |
+| FileApi | - | ○ 骨架 |
+| OtherApi | - | ○ 骨架 |
+
+### 运行测试
+
+```bash
+# 运行所有 OneBot11 测试
+mvn test -pl bot -Dtest=OneBot11ClientTest,MessageApiTest,GroupApiTest,UserApiTest
+
+# 运行单个 API 测试
+mvn test -pl bot -Dtest=GroupApiTest
+```
+
 ## 启动入口
 
 - `BotStart.java` - Spring Boot 启动类

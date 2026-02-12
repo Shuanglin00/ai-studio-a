@@ -26,7 +26,10 @@
       "Bash(xargs:*)",
       "Bash(ls:*)",
       "Bash(tree:*)",
-      "Bash(python:*)"
+      "Bash(python:*)",
+      "Bash(git reset:*)",
+      "Bash(move:*)",
+      "Bash(python3:*)"
     ]
   }
 }
