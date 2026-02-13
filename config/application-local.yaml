@@ -7,7 +7,7 @@ spring:
     name: catBot-local
   data:
     mongodb:
-      host: localhost
+      host: ${DEV_SERVER_HOST}
       port: 27017
       database: catBot
       auto-index-creation: false
@@ -15,7 +15,7 @@ spring:
       password: ${DB_PASSWORD}
       authentication-database: admin
     redis:
-      host: localhost
+      host: ${DEV_SERVER_HOST}
       port: 6379
 
 ai:
@@ -47,7 +47,7 @@ milvus:
   enable: false
 
 neo4j:
-  uri: bolt://localhost:7687
+  uri: bolt://${DEV_SERVER_HOST}:7687
   username: neo4j
   password: ${DB_PASSWORD}
 
@@ -66,11 +66,13 @@ bot:
       enabled: false
   log:
     level: DEBUG
+  pig:
+    image-path: D:/project/ai-studio/file/pigs
 
 server:
-  port: 8080
+  port: 17100
 
 logging:
   level:
-    root: INFO
+    root: DEBUG
     com.shuanglin: DEBUG

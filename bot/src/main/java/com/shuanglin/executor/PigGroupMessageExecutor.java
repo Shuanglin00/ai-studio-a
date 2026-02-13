@@ -37,6 +37,21 @@ public class PigGroupMessageExecutor {
      */
     @GroupMessageHandler(triggerPrefix = "渚", description = "发送随机猪猪图片",role = RoleType.User)
     public void pigGroupMessage(GroupMessageEvent group) {
+        sendPigImage(group);
+    }
+
+    /**
+     * 英文别名：发送猪图片
+     */
+    @GroupMessageHandler(triggerPrefix = "!pig", description = "Send random pig image", role = RoleType.User)
+    public void pigGroupMessageEn(GroupMessageEvent group) {
+        sendPigImage(group);
+    }
+
+    /**
+     * 发送猪图片的内部方法
+     */
+    private void sendPigImage(GroupMessageEvent group) {
         String imagePath = botProperties.getPig().getImagePath();
         String base64Image = getRandomImageAsBase64(imagePath);
 

@@ -443,11 +443,21 @@ public class PermissionManager {
 
         // 1. 检查全局权限
         Optional<GlobalPermission> globalPerm = getGlobalPermission(commandName);
-        if (globalPerm.isEmpty() || !globalPerm.get().isEnabled()) {
-            return result.fail("指令未注册或已禁用");
+        if (globalPerm.isEmpty()) {
+            log.warn("Command {} not found in global permissions, allowing by default", commandName);
+            return result.success(); // 命令不存在时默认允许
         }
 
         GlobalPermission gp = globalPerm.get();
+
+        // 如果权限级别是 PUBLIC，直接通过检查（不考虑 enabled 状态）
+        if (gp.getLevel() == PermissionLevel.PUBLIC) {
+            log.debug("Command {} has PUBLIC level, allowing", commandName);
+        } else if (!gp.isEnabled()) {
+            // 非 PUBLIC 级别的命令需要检查 enabled 状态
+            log.warn("Command {} is disabled", commandName);
+            return result.fail("指令未注册或已禁用");
+        }
 
         // 2. 检查全局黑名单
         if (gp.isInGlobalBlacklist(userId)) {

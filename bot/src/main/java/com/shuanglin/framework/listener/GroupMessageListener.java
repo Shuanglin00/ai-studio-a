@@ -66,13 +66,18 @@ public class GroupMessageListener {
 	 * 将 Event 转换为 GroupMessageEvent
 	 */
 	private GroupMessageEvent convertToGroupMessage(Event event) {
+		log.info("Converting event, type: {}, class: {}", event.get("message_type"), event.getClass().getName());
 		if (event instanceof GroupMessageEvent) {
+			log.info("Event is already GroupMessageEvent");
 			return (GroupMessageEvent) event;
 		}
 		// 如果是基类 Event，尝试反序列化
 		try {
 			String json = gson.toJson(event);
-			return gson.fromJson(json, GroupMessageEvent.class);
+			log.info("JSON: {}", json);
+			GroupMessageEvent result = gson.fromJson(json, GroupMessageEvent.class);
+			log.info("Converted to GroupMessageEvent, groupId: {}, userId: {}", result.getGroupId(), result.getUserId());
+			return result;
 		} catch (Exception e) {
 			log.error("Failed to convert event to GroupMessageEvent", e);
 			return null;
@@ -84,10 +89,15 @@ public class GroupMessageListener {
 				event.getGroupId(), event.getUserId(), event.getRawMessage());
 
 		String messageText = event.getMessageText();
-		log.debug("Message text: '{}'", messageText);
+		log.info("Message text: '{}'", messageText);
 
 		List<CommandInfo> commands = commandRegistry.getAllCommands();
-		log.debug("Found {} registered commands", commands.size());
+		log.info("Found {} registered commands", commands.size());
+
+		if (commands.isEmpty()) {
+			log.info("No commands registered, returning");
+			return;
+		}
 
 		// 遍历查找匹配的指令
 		for (CommandInfo commandInfo : commands) {

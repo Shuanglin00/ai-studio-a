@@ -49,7 +49,7 @@ bot:
     compatibility:
       legacy-mode: false
   pig:
-    image-path: ${user.dir}/bot/src/main/resources/pigs
+    image-path: ${PIG_IMAGE_PATH:D:/project/ai-studio/file/pigs}
   log:
     path: ${user.dir}/../APPS/log
     level: INFO
