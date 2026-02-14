@@ -21,7 +21,10 @@
       "Bash(powershell -Command:*)",
       "Bash(git commit:*)",
       "Bash(git add:*)",
-      "Skill(everything-claude-code:checkpoint)"
+      "Skill(everything-claude-code:checkpoint)",
+      "Bash(docker build:*)",
+      "Bash(git push:*)",
+      "Bash(gh run list:*)"
     ]
   }
 }
