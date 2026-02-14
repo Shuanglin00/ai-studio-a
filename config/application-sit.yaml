@@ -66,6 +66,7 @@ bot:
       enabled: true
   log:
     level: DEBUG
+    path: /app/logs
 
 server:
   port: 8080

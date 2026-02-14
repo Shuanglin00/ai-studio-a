@@ -1,0 +1,39 @@
+# Git
+.git
+.gitignore
+.github/workflows/
+
+# IDE
+*.iml
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Build artifacts
+target/
+*.class
+*.jar
+*.war
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Config (external)
+config/
+!bot/pom.xml
+
+# Documentation
+*.md
+docs/
+README*
+
+# Maven
+.mvn/
+mvnw
+mvnw.cmd
