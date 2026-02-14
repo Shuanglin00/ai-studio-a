@@ -1,13 +1,11 @@
 package com.shuanglin.ai.langchain4j.config.vo;
 
 import lombok.Data;
-import lombok.EqualsAndHashCode;
-import org.dromara.milvus.plus.config.MilvusPropertiesConfiguration;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @Data
 @ConfigurationProperties(prefix = MilvusProperties.PREFIX)
-public class MilvusProperties  {
+public class MilvusProperties {
 	public static final String PREFIX = "milvus";
 
 	private String uri;

@@ -2,10 +2,10 @@ package com.shuanglin.ai.langchain4j.rag.retriever;
 
 import com.shuanglin.ai.langchain4j.assistant.DecomposeAssistant;
 import com.shuanglin.ai.langchain4j.config.vo.MilvusProperties;
+import com.shuanglin.ai.langchain4j.repository.MessageEmbeddingRepository;
 import com.shuanglin.ai.langchain4j.rag.util.MilvusClusterCenterFinder;
 import com.shuanglin.dao.message.MessageStoreEntity;
 import com.shuanglin.dao.message.MessageStoreEntityRepository;
-import com.shuanglin.dao.milvus.MessageEmbeddingMapper;
 import com.shuanglin.enums.MongoDBConstant;
 import dev.langchain4j.data.embedding.Embedding;
 import dev.langchain4j.data.segment.TextSegment;
@@ -16,10 +16,6 @@ import dev.langchain4j.rag.content.retriever.ContentRetriever;
 import dev.langchain4j.rag.query.Query;
 import dev.langchain4j.service.AiServices;
 import io.milvus.v2.client.MilvusClientV2;
-import io.milvus.v2.service.vector.request.SearchReq;
-import io.milvus.v2.service.vector.request.data.BaseVector;
-import io.milvus.v2.service.vector.request.data.FloatVec;
-import io.milvus.v2.service.vector.response.SearchResp;
 import jakarta.annotation.Resource;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,7 +30,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ContentQueryRetriever implements ContentRetriever {
 	private final MilvusClientV2 milvusClientV2;
-	private final MessageEmbeddingMapper messageEmbeddingMapper;
+	private final MessageEmbeddingRepository messageEmbeddingRepository;
 	private final EmbeddingModel embeddingModel;
 	private final MessageStoreEntityRepository messageStoreEntityRepository;
 	private final MilvusProperties milvusProperties;
@@ -47,16 +43,12 @@ public class ContentQueryRetriever implements ContentRetriever {
 		//1. 查询分析-得多若干子查询
 		log.info("==================== [Multi-Step RAG 开始] ====================");
 		Embedding content = embeddingModel.embed(TextSegment.textSegment(query.text())).content();
-		SearchReq searchRequest = SearchReq.builder()
-				.filterTemplateValues(Map.of("storeType", MongoDBConstant.StoreType.document.name()))
-				.data(Collections.singletonList(new FloatVec(content.vector())))
-				.topK(milvusProperties.getTopK())
-				.build();
-		SearchResp vecSearch = messageEmbeddingMapper.getClient().search(searchRequest);
-		List<String> messageIds = vecSearch.getSearchResults().stream()
-				.flatMap(Collection::stream)
-				.map(it -> it.getEntity().get("storeId").toString())
-				.collect(Collectors.toList());
+		var searchResults = messageEmbeddingRepository.search(
+				content.vectorAsList(),
+				milvusProperties.getTopK(),
+				Map.of("storeType", MongoDBConstant.StoreType.document.name())
+		);
+		List<String> messageIds = messageEmbeddingRepository.extractStoreIds(searchResults);
 
 		log.info("[Step 3] Extracted memory IDs from search result: {}", messageIds);
 

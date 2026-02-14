@@ -12,6 +12,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 实体注册表MongoDB文档模型
@@ -49,8 +50,15 @@ public class EntityRegistry {
     
     /**
      * 实体类型：Character/Location/Organization/Item/Skill
+     * 对应 ai 模块的 EntityTypeEnum
      */
     private String entityType;
+
+    /**
+     * 实体类型标签（对应 Neo4j 中的 Label）
+     * 由 ai 模块的 EntityTypeEnum 提供
+     */
+    private String entityTypeLabel;
     
     /**
      * 首次出现章节
@@ -72,7 +80,57 @@ public class EntityRegistry {
      * 创建时间
      */
     private Date createdAt;
-    
+
+    /**
+     * 更新时间
+     */
+    private Date updatedAt;
+
+    /**
+     * 实体描述（可选，用于增强生成）
+     */
+    private String description;
+
+    /**
+     * 实体属性（JSON格式，用于存储额外属性）
+     */
+    private Map<String, Object> properties;
+
+    /**
+     * 关联的Neo4j节点UUID
+     */
+    private String neo4jUuid;
+
+    /**
+     * 是否已验证（用于辩证验证阶段）
+     */
+    private Boolean verified;
+
+    /**
+     * 验证时间
+     */
+    private Date verifiedAt;
+
+    /**
+     * 验证备注
+     */
+    private String verificationNote;
+
+    /**
+     * 首次提及的原文片段
+     */
+    private String firstMentionSource;
+
+    /**
+     * 提及次数统计
+     */
+    private Integer mentionCount;
+
+    /**
+     * 提及的章节列表
+     */
+    private List<Integer> mentionChapters;
+
     /**
      * 获取所有名称（标准名+别名）
      */
@@ -84,7 +142,7 @@ public class EntityRegistry {
         }
         return allNames;
     }
-    
+
     /**
      * 添加别名（去重）
      */
@@ -94,6 +152,19 @@ public class EntityRegistry {
         }
         if (!aliases.contains(alias) && !alias.equals(standardName)) {
             aliases.add(alias);
+        }
+    }
+
+    /**
+     * 添加章节提及记录
+     */
+    public void addChapterMention(int chapterIndex) {
+        if (mentionChapters == null) {
+            mentionChapters = new ArrayList<>();
+        }
+        if (!mentionChapters.contains(chapterIndex)) {
+            mentionChapters.add(chapterIndex);
+            mentionCount = mentionChapters.size();
         }
     }
 }

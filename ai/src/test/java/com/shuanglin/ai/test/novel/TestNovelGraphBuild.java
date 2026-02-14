@@ -2,7 +2,7 @@ package com.shuanglin.ai.test.novel;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.shuanglin.bot.utils.FileReadUtil;
+import com.shuanglin.ai.utils.FileReadUtil;
 import com.shuanglin.dao.model.EntityMention;
 import com.shuanglin.dao.model.EntityRegistry;
 import dev.langchain4j.model.openai.OpenAiChatModel;
@@ -78,19 +78,24 @@ public class TestNovelGraphBuild {
     }
 
     /**
-     * 初始化LLM模型
+     * 初始化LLM模型 - 使用本地Ollama RWKV 7.2B模型
      */
     private static void initializeLLM() {
-        System.out.println("初始化Ollama模型...");
+        System.out.println("=== 初始化Ollama RWKV 7.2B模型 ===");
+        System.out.println("模型: hf.co/shoumenchougou/RWKV7-G1d-13.3B-GGUF:Q4_K_M");
+        System.out.println("地址: http://localhost:11434/v1\n");
+
         chatModel = OpenAiChatModel.builder()
-                .baseUrl("https://api.minimaxi.com/v1")
-                .apiKey("eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJHcm91cE5hbWUiOiJTaHVhbmdsaW4iLCJVc2VyTmFtZSI6IlNodWFuZ2xpbiIsIkFjY291bnQiOiIiLCJTdWJqZWN0SUQiOiIxOTg1NjUzMDM4MDkzNzA1NTkwIiwiUGhvbmUiOiIxODc3Nzc5MTY0NSIsIkdyb3VwSUQiOiIxOTg1NjUzMDM4MDg1MzE2OTgyIiwiUGFnZU5hbWUiOiIiLCJNYWlsIjoiIiwiQ3JlYXRlVGltZSI6IjIwMjUtMTEtMDYgMTQ6MzQ6NDUiLCJUb2tlblR5cGUiOjEsImlzcyI6Im1pbmltYXgifQ.CIsWfl6R1lfBH34ya0Q1H0zYFHT4bQ5LhJAnH4Q6JGgnPXZ-Xp_CVITmk7Nspbck5EkOGuaKe5zrqfaXyfK_3MuItTwY8Qj3YTrGJanX1dIZGLELBNdOExClVDTZLPNK5c5YOilvGczo5Uw7EMnJIb_WGBgFbYKBOyL1M4pGLnrcOtwlDZ-kIZ2Ifgee9JqVY5Y4sVpvsJA3G2JiP9Cb5q24GXrWEvZlcxg-QAqOKwbiPuki_hI6dI_6pdKrUQwm6Iu8iC-xZP6Akayn4GZ6XDBCcne4gMkYVMARAIWyhIfZbeLkS7tyMItadqAgE6aCG6fRRa6xXgZ2RXDUEr4Phg")
-                .modelName("MiniMax-M2.1")
-                .customHeaders(Map.of("reasoning_split","true"))
-                .temperature(0.0)
-                .timeout(Duration.ofSeconds(6000000))
+                .baseUrl("http://localhost:11434/v1")
+                .apiKey("ollama")
+                .modelName("hf.co/shoumenchougou/RWKV7-G1d-13.3B-GGUF:Q4_K_M")
+                .temperature(0.3)
+                .maxTokens(4096)  // 增加输出长度
+                .timeout(Duration.ofHours(2))  // 2小时超时，永不超时
+                .logRequests(true)
+                .logResponses(true)
                 .build();
-        System.out.println("✓ miniMax模型初始化完成\n");
+        System.out.println("✓ Ollama RWKV 7.2B模型初始化完成\n");
     }
     /**
      * 阶段一：全局扫描与实体标准化
@@ -104,7 +109,7 @@ public class TestNovelGraphBuild {
         List<EntityMention> allMentions = new ArrayList<>();
         Map<String, List<String>> mentionContextsMap = new HashMap<>();
         Map<String, Map<String, Object>> mentionAttributesMap = new HashMap<>();
-        long totalPage = 20;
+        long totalPage = 5;  // 测试时减少章节数
         for (int i = 2; i < totalPage; i++) {
             String chunk = parseResults.get(i).getContent();
             System.out.println("处理第" + i + "/" + totalPage + "章文本...");
@@ -170,8 +175,18 @@ public class TestNovelGraphBuild {
                     continue;
                 }
 
+                // 去重：使用Set记录已添加的实体名称
+                Set<String> addedEntities = new HashSet<>();
+
                 for (Map<String, Object> json : jsonList) {
                     EntityMention mention = EntityMention.fromJson(json);
+
+                    // 去重：跳过已存在的实体
+                    if (addedEntities.contains(mention.getStandardName())) {
+                        continue;
+                    }
+                    addedEntities.add(mention.getStandardName());
+
                     allMentions.add(mention);
                     
                     // 同时保存contexts和attributes到mention对象
@@ -225,80 +240,18 @@ public class TestNovelGraphBuild {
     }
 
     /**
-     * 调用LLM提取全局实体
+     * 调用LLM提取全局实体 - 极简版提示词（无示例）
      */
     private static String extractGlobalEntities(String textChunk) {
-        String prompt = String.format("""
-                                              # 任务：全局实体提取
+        // 限制文本长度，避免超过max_tokens
+        String truncatedText = textChunk.length() > 1500 ? textChunk.substring(0, 1500) : textChunk;
 
-                                              请从[文本内容]中提取所有静态实体，包括：
-                                              - Character: 角色（人名、角色名）
-                                              - Location: 地点（地名、场景）
-                                              - Organization: 组织（宗门、家族、势力）
-                                              - Item: 物品（武器、法宝、道具）
-                                              - Skill: 技能/功法（法术、神通、功法）
-                                              - Identity: 身份/称号（身份、称号、头衔）
-                                              - Rule: 规则/法则（世界规则、制度、门规）
-                                              - Era: 时代/纪元（时代、纪元、历史时期）
-                                              - Species: 种族/物种（种族、妖兽、灵族）
-                                              - Realm: 境界/等级（修炼境界、等级划分）
-                                              - Constitution: 体质/血脉（特殊体质、血脉）
-                                              - Currency: 货币/资源（灵石、灵晶、功德）
-                                              - Concept: 抽象概念（气运、业力、因果）
-                                              - Legacy: 传承（传承、秘法）
-                                              - Phenomenon: 天地异象（天劫、异象）
-                                              
-                                              ## 提取规则
-                                              1. **专有名词优先**：仅提取具有明确指代的专有名词（如"萧炎"、"云岚宗"、"玄重尺"）
-                                              2. **别名聚合**：识别同一实体的所有别名（如"萧炎"的别名："岩枭"、"萧家三少爷"、"炎帝"）
-                                              3. **过滤泛指词**：忽略泛指词（如"黑衣人"、"老者"、"那个人"）
-                                              4. **首次出现记录**：记录实体首次出现的完整句子或段落作为上下文
-                                              5. **提取属性与设定**：从原文中提取该实体的所有属性、特征、背景设定
-                                              6. **跳过无效内容**：如果文本中没有可提取的实体（如目录、版权声明等），返回空数组 []
-                                              
-                                              ## 输出格式
-                                              
-                                              请**只返回JSON数组**，不要包含任何其他文字说明。
-                                              
-                                              如果没有可提取的实体，返回：
-                                              ```json
-                                              []
-                                              ```
-                                              
-                                              如果有实体，每个元素包含以下字段：
-                                              ```json
-                                              [
-                                                {
-                                                  "standardName": "实体标准名称",
-                                                  "aliases": ["别名1", "别名2"],
-                                                  "entityType": "Character/Location/Organization/Item/Skill/Identity/Rule/Era/Species/Realm/Constitution/Currency/Concept/Legacy/Phenomenon",
-                                                  "firstMention": "首次出现的完整句子或段落（保持原文）",
-                                                  "contexts": [
-                                                    "包含该实体的句子1（原文）",
-                                                    "包含该实体的句子2（原文）",
-                                                    "包含该实体的句子3（原文）"
-                                                  ],
-                                                  "attributes": {
-                                                    "description": "实体的外貌/特征描述（从原文提取）",
-                                                    "background": "背景信息（从原文提取）",
-                                                    "abilities": "能力/技能（从原文提取）",
-                                                    "relationships": "与其他实体的关系（从原文提取）",
-                                                    "other": "其他重要信息（从原文提取）"
-                                                  }
-                                                }
-                                              ]
-                                              ```
-                                              
-                                              ## 重要说明
-                                              - **必须只返回JSON数组，不要有任何解释性文字**
-                                              - firstMention、contexts、attributes中的所有内容必须直接从原文中提取，不要概括或改写
-                                              - contexts数组中至少包含3-5个包含该实体的原文句子
-                                              - attributes中的每个字段都应该引用原文中的具体描述
-                                              
-                                              ## [文本内容]
-                                              
-                                              %s
-                                              """, textChunk);
+        String prompt = String.format("""
+                从文本提取角色、地点、组织、物品、技能。只返回JSON数组格式。不要返回其他内容。
+
+                文本：
+                %s
+                """, truncatedText);
 
         String response = chatModel.chat(prompt);
 
@@ -307,11 +260,23 @@ public class TestNovelGraphBuild {
         
         // 提取JSON部分（去除可能的markdown标记）
         if (response.contains("```json")) {
-            response = response.substring(response.indexOf("```json") + 7);
-            response = response.substring(0, response.indexOf("```"));
+            int start = response.indexOf("```json") + 7;
+            int end = response.indexOf("```", start);
+            if (end > start) {
+                response = response.substring(start, end);
+            } else {
+                // 没有找到结束标记，尝试直接解析
+                response = response.substring(start);
+            }
         } else if (response.contains("```")) {
-            response = response.substring(response.indexOf("```") + 3);
-            response = response.substring(0, response.indexOf("```"));
+            int start = response.indexOf("```") + 3;
+            int end = response.indexOf("```", start);
+            if (end > start) {
+                response = response.substring(start, end);
+            } else {
+                // 没有找到结束标记，保留原内容
+                response = response.substring(start);
+            }
         }
 
         return response.trim();
@@ -967,6 +932,28 @@ public class TestNovelGraphBuild {
         // 方法0: 先清理可能的思考标签和markdown
         jsonContent = cleanThinkingTagsAndMarkdown(jsonContent);
 
+        // 方法0.5: 尝试解析Markdown格式输出（RWKV模型常用）
+        try {
+            List<Map<String, Object>> result = parseMarkdownFormat(jsonContent);
+            if (!result.isEmpty()) {
+                System.err.println("    Markdown格式解析成功，获取到 " + result.size() + " 个实体");
+                return result;
+            }
+        } catch (Exception e) {
+            System.err.println("    Markdown格式解析失败: " + e.getMessage());
+        }
+
+        // 方法0.6: 尝试解析类型字典格式 {"Character": [...], "Location": [...]}
+        try {
+            List<Map<String, Object>> result = parseEntityTypeMap(jsonContent);
+            if (!result.isEmpty()) {
+                System.err.println("    类型字典格式解析成功，获取到 " + result.size() + " 个实体");
+                return result;
+            }
+        } catch (Exception e) {
+            System.err.println("    类型字典格式解析失败: " + e.getMessage());
+        }
+
         // 方法1: 直接尝试解析
         try {
             return objectMapper.readValue(jsonContent, new TypeReference<List<Map<String, Object>>>() {});
@@ -1023,7 +1010,284 @@ public class TestNovelGraphBuild {
         json = json.replaceAll("```json\\s*", "").replaceAll("\\s*```", "");
         json = json.replaceAll("```\\s*", "").replaceAll("\\s*```", "");
 
+        // 处理多个JSON数组拼接的情况（如 [{}] [{}] 或 [{}]{})
+        // 找到最后一个 ] 作为结束，然后从第一个 [ 开始
+        json = extractFirstValidJsonArray(json);
+
         return json;
+    }
+
+    /**
+     * 从包含多个JSON数组的文本中提取第一个有效的JSON数组
+     */
+    private String extractFirstValidJsonArray(String json) {
+        // 找到第一个 [ 和最后一个 ]
+        int firstBracket = json.indexOf('[');
+        int lastBracket = json.lastIndexOf(']');
+
+        if (firstBracket != -1 && lastBracket != -1 && lastBracket > firstBracket) {
+            // 提取 [...] 之间的内容
+            String extracted = json.substring(firstBracket, lastBracket + 1);
+
+            // 检查是否是有效的JSON（以 [ 开头，以 ] 结尾）
+            if (extracted.trim().startsWith("[") && extracted.trim().endsWith("]")) {
+                return extracted;
+            }
+        }
+
+        return json;
+    }
+
+    /**
+     * 解析Markdown格式的实体输出（RWKV模型常用格式）
+     * 例如:
+     * ### **实体提取结果**
+     * #### **角色**
+     * 1. **阎白**
+     *    - **首次提及记录**：第一章
+     *    - **名称**：女人、阎主
+     *    - **背景描述**：...
+     */
+    private List<Map<String, Object>> parseMarkdownFormat(String content) {
+        List<Map<String, Object>> entities = new ArrayList<>();
+
+        // 检测是否是Markdown格式（包含 ### 或 ## 或 ** 这样的标记）
+        if (!content.contains("###") && !content.contains("##") && !content.contains("**")) {
+            return entities;
+        }
+
+        // 定义实体类型映射
+        Map<String, String> typeMapping = new HashMap<>();
+        typeMapping.put("角色", "Character");
+        typeMapping.put("人物", "Character");
+        typeMapping.put("Character", "Character");
+        typeMapping.put("地点", "Location");
+        typeMapping.put("Location", "Location");
+        typeMapping.put("组织", "Organization");
+        typeMapping.put("Organization", "Organization");
+        typeMapping.put("物品", "Item");
+        typeMapping.put("Item", "Item");
+        typeMapping.put("技能", "Skill");
+        typeMapping.put("功法", "Skill");
+        typeMapping.put("Skill", "Skill");
+        typeMapping.put("身份", "Identity");
+        typeMapping.put("Identity", "Identity");
+        typeMapping.put("规则", "Rule");
+        typeMapping.put("Rule", "Rule");
+        typeMapping.put("时代", "Era");
+        typeMapping.put("纪元", "Era");
+        typeMapping.put("Era", "Era");
+        typeMapping.put("物种", "Species");
+        typeMapping.put("Species", "Species");
+        typeMapping.put("境界", "Realm");
+        typeMapping.put("Realm", "Realm");
+        typeMapping.put("体质", "Constitution");
+        typeMapping.put("Constitution", "Constitution");
+        typeMapping.put("货币", "Currency");
+        typeMapping.put("Currency", "Currency");
+        typeMapping.put("概念", "Concept");
+        typeMapping.put("Concept", "Concept");
+        typeMapping.put("遗产", "Legacy");
+        typeMapping.put("Legacy", "Legacy");
+        typeMapping.put("现象", "Phenomenon");
+        typeMapping.put("Phenomenon", "Phenomenon");
+
+        // 按行分割
+        String[] lines = content.split("\n");
+
+        String currentType = null;
+        String currentEntity = null;
+        Map<String, Object> currentEntityMap = null;
+        List<String> currentContexts = new ArrayList<>();
+        Map<String, String> currentAttributes = new HashMap<>();
+
+        for (int i = 0; i < lines.length; i++) {
+            String line = lines[i].trim();
+            if (line.isEmpty()) continue;
+
+            // 检测实体类型标题 (如 ### **角色** 或 #### **Character**)
+            for (String typeKey : typeMapping.keySet()) {
+                if (line.contains("**" + typeKey + "**") || line.contains("**" + typeKey + "：") || line.contains("**" + typeKey + ":")) {
+                    // 保存之前的实体
+                    if (currentEntityMap != null && currentEntity != null) {
+                        if (!currentContexts.isEmpty()) {
+                            currentEntityMap.put("contexts", currentContexts);
+                        }
+                        if (!currentAttributes.isEmpty()) {
+                            currentEntityMap.put("attributes", currentAttributes);
+                        }
+                        entities.add(currentEntityMap);
+                    }
+                    currentType = typeKey;
+                    currentEntity = null;
+                    currentEntityMap = null;
+                    currentContexts.clear();
+                    currentAttributes.clear();
+                    break;
+                }
+            }
+
+            // 检测实体名称 (如 1. **阎白** 或 - **阎白**)
+            if (currentType != null && (line.matches("^\\d+\\..*") || line.matches("^-\\s+.*"))) {
+                String entityName = line.replaceAll("^\\d+\\.\\s*", "").replaceAll("^-\\s*", "");
+                entityName = entityName.replaceAll("\\*\\*", "").trim();
+                if (!entityName.isEmpty() && !entityName.contains("首次提及") && !entityName.contains("名称")
+                    && !entityName.contains("背景描述") && !entityName.contains("名称") && !entityName.contains("描述")) {
+
+                    // 保存之前的实体
+                    if (currentEntityMap != null && currentEntity != null) {
+                        if (!currentContexts.isEmpty()) {
+                            currentEntityMap.put("contexts", new ArrayList<>(currentContexts));
+                        }
+                        if (!currentAttributes.isEmpty()) {
+                            currentEntityMap.put("attributes", new HashMap<>(currentAttributes));
+                        }
+                        entities.add(currentEntityMap);
+                    }
+
+                    currentEntity = entityName;
+                    currentEntityMap = new HashMap<>();
+                    currentEntityMap.put("standardName", entityName);
+                    currentEntityMap.put("entityType", typeMapping.getOrDefault(currentType, currentType));
+                    currentEntityMap.put("firstMention", "第一章"); // 默认值
+                    currentContexts.clear();
+                    currentAttributes.clear();
+                }
+            }
+
+            // 检测属性 (首次提及、名称、背景描述等)
+            if (currentEntityMap != null && line.contains("**")) {
+                // 首次提及记录
+                if (line.contains("首次提及") || line.contains("首次出现")) {
+                    String value = line.replaceAll(".*首次[提及出现]+[记录]*[：:]*\\*\\*", "")
+                                       .replaceAll("\\*\\*", "").trim();
+                    if (!value.isEmpty()) {
+                        currentEntityMap.put("firstMention", value);
+                    }
+                }
+                // 名称/别名
+                else if (line.contains("名称") && !line.contains("名称：") && !line.contains("名称:")) {
+                    String value = line.replaceAll(".*名称[：:]*\\*\\*", "")
+                                       .replaceAll("\\*\\*", "").trim();
+                    if (!value.isEmpty()) {
+                        String[] aliases = value.split("[、,]");
+                        List<String> aliasList = new ArrayList<>();
+                        for (String alias : aliases) {
+                            alias = alias.trim().replaceAll("\\*\\*", "");
+                            if (!alias.isEmpty() && !alias.equals(currentEntity)) {
+                                aliasList.add(alias);
+                            }
+                        }
+                        if (!aliasList.isEmpty()) {
+                            currentEntityMap.put("aliases", aliasList);
+                        }
+                    }
+                }
+                // 背景描述
+                else if (line.contains("背景描述") || line.contains("描述") || line.contains("背景")) {
+                    String value = line.replaceAll(".*[背景]*描述[：:]*\\*\\*", "")
+                                       .replaceAll("\\*\\*", "").trim();
+                    if (!value.isEmpty()) {
+                        currentAttributes.put("description", value);
+                    }
+                }
+                // 能力
+                else if (line.contains("能力") || line.contains("技能")) {
+                    String value = line.replaceAll(".*[能力技能]+[：:]*\\*\\*", "")
+                                       .replaceAll("\\*\\*", "").trim();
+                    if (!value.isEmpty()) {
+                        currentAttributes.put("abilities", value);
+                    }
+                }
+                // 关系
+                else if (line.contains("关系") || line.contains("身份")) {
+                    String value = line.replaceAll(".*[关系身份]+[：:]*\\*\\*", "")
+                                       .replaceAll("\\*\\*", "").trim();
+                    if (!value.isEmpty()) {
+                        currentAttributes.put("relationships", value);
+                    }
+                }
+            }
+        }
+
+        // 保存最后一个实体
+        if (currentEntityMap != null && currentEntity != null) {
+            if (!currentContexts.isEmpty()) {
+                currentEntityMap.put("contexts", new ArrayList<>(currentContexts));
+            }
+            if (!currentAttributes.isEmpty()) {
+                currentEntityMap.put("attributes", new HashMap<>(currentAttributes));
+            }
+            entities.add(currentEntityMap);
+        }
+
+        return entities;
+    }
+
+    /**
+     * 解析类型字典格式 {"Character": [...], "Location": [...]}
+     * 这是RWKV 7.2B模型常用的输出格式
+     */
+    private List<Map<String, Object>> parseEntityTypeMap(String jsonContent) {
+        List<Map<String, Object>> entities = new ArrayList<>();
+
+        // 检测是否是类型字典格式
+        if (!jsonContent.contains("\"Character\"") && !jsonContent.contains("\"Location\"")
+            && !jsonContent.contains("\"Organization\"") && !jsonContent.contains("\"Item\"")) {
+            return entities;
+        }
+
+        // 尝试解析为Map<String, List<String>>
+        try {
+            Map<String, List<String>> typeMap = objectMapper.readValue(
+                jsonContent,
+                new TypeReference<Map<String, List<String>>>() {}
+            );
+
+            // 实体类型映射
+            Map<String, String> typeMapping = new HashMap<>();
+            typeMapping.put("Character", "Character");
+            typeMapping.put("Location", "Location");
+            typeMapping.put("Organization", "Organization");
+            typeMapping.put("Item", "Item");
+            typeMapping.put("Skill", "Skill");
+            typeMapping.put("Skill/Function", "Skill");
+            typeMapping.put("Identity", "Identity");
+            typeMapping.put("Identity/Rule/Concept", "Identity");
+            typeMapping.put("Rule", "Rule");
+            typeMapping.put("Era", "Era");
+            typeMapping.put("Species", "Species");
+            typeMapping.put("Realm", "Realm");
+            typeMapping.put("Constitution", "Constitution");
+            typeMapping.put("Currency", "Currency");
+            typeMapping.put("Concept", "Concept");
+            typeMapping.put("Legacy", "Legacy");
+            typeMapping.put("Phenomenon", "Phenomenon");
+
+            // 遍历每个类型和实体列表
+            for (Map.Entry<String, List<String>> entry : typeMap.entrySet()) {
+                String rawType = entry.getKey();
+                String entityType = typeMapping.getOrDefault(rawType, rawType);
+                List<String> entityNames = entry.getValue();
+
+                if (entityNames != null) {
+                    for (String name : entityNames) {
+                        if (name != null && !name.trim().isEmpty()) {
+                            Map<String, Object> entity = new HashMap<>();
+                            entity.put("standardName", name.trim());
+                            entity.put("entityType", entityType);
+                            entity.put("firstMention", "第一章"); // 默认值
+                            entities.add(entity);
+                        }
+                    }
+                }
+            }
+
+            return entities;
+        } catch (Exception e) {
+            System.err.println("    类型字典解析失败: " + e.getMessage());
+            return entities;
+        }
     }
 
     /**

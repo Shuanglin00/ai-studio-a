@@ -1,6 +1,6 @@
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.shuanglin.bot.utils.FileReadUtil;
+import com.shuanglin.ai.utils.FileReadUtil;
 import com.shuanglin.dao.model.EntityMention;
 import com.shuanglin.dao.model.EntityRegistry;
 import dev.langchain4j.model.openai.OpenAiChatModel;
@@ -76,19 +76,23 @@ public class TestNovelGraphBuild {
     }
 
     /**
-     * 初始化LLM模型
+     * 初始化LLM模型 - 使用MiniMax API (更稳定)
      */
     private static void initializeLLM() {
-        System.out.println("初始化Ollama模型...");
+        System.out.println("=== 初始化MiniMax API ===");
+        System.out.println("模型: MiniMax-M2.1\n");
+
         chatModel = OpenAiChatModel.builder()
                 .baseUrl("https://api.minimaxi.com/v1")
                 .apiKey("eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJHcm91cE5hbWUiOiJTaHVhbmdsaW4iLCJVc2VyTmFtZSI6IlNodWFuZ2xpbiIsIkFjY291bnQiOiIiLCJTdWJqZWN0SUQiOiIxOTg1NjUzMDM4MDkzNzA1NTkwIiwiUGhvbmUiOiIxODc3Nzc5MTY0NSIsIkdyb3VwSUQiOiIxOTg1NjUzMDM4MDg1MzE2OTgyIiwiUGFnZU5hbWUiOiIiLCJNYWlsIjoiIiwiQ3JlYXRlVGltZSI6IjIwMjUtMTEtMDYgMTQ6MzQ6NDUiLCJUb2tlblR5cGUiOjEsImlzcyI6Im1pbmltYXgifQ.CIsWfl6R1lfBH34ya0Q1H0zYFHT4bQ5LhJAnH4Q6JGgnPXZ-Xp_CVITmk7Nspbck5EkOGuaKe5zrqfaXyfK_3MuItTwY8Qj3YTrGJanX1dIZGLELBNdOExClVDTZLPNK5c5YOilvGczo5Uw7EMnJIb_WGBgFbYKBOyL1M4pGLnrcOtwlDZ-kIZ2Ifgee9JqVY5Y4sVpvsJA3G2JiP9Cb5q24GXrWEvZlcxg-QAqOKwbiPuki_hI6dI_6pdKrUQwm6Iu8iC-xZP6Akayn4GZ6XDBCcne4gMkYVMARAIWyhIfZbeLkS7tyMItadqAgE6aCG6fRRa6xXgZ2RXDUEr4Phg")
                 .modelName("MiniMax-M2.1")
                 .customHeaders(Map.of("reasoning_split","true"))
                 .temperature(0.0)
-                .timeout(Duration.ofSeconds(6000000))
+                .timeout(Duration.ofSeconds(600))
+                .logRequests(true)
+                .logResponses(true)
                 .build();
-        System.out.println("✓ miniMax模型初始化完成\n");
+        System.out.println("✓ MiniMax API初始化完成\n");
     }
     /**
      * 阶段一：全局扫描与实体标准化

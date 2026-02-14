@@ -1,7 +1,7 @@
 package com.shuanglin.ai.test.novel;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.shuanglin.bot.utils.FileReadUtil;
+import com.shuanglin.ai.utils.FileReadUtil;
 import dev.langchain4j.model.openai.OpenAiChatModel;
 import lombok.Data;
 

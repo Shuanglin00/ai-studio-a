@@ -6,31 +6,33 @@ spring:
     name: ai
   main:
     allow-circular-references: true
+    allow-bean-definition-overriding: true
   data:
     redis:
       database: 1
-      host: ${REDIS_HOST}
+      host: 192.168.209.128
+      port: 6379
     mongodb:
-      host: ${MONGODB_HOST}
-      port: ${MONGODB_PORT}
-      database: ${MONGODB_DATABASE}
-      username: ${MONGODB_USERNAME}
-      password: ${MONGODB_PASSWORD}
+      host: 192.168.209.128
+      port: 27017
+      database: botDB
+      username: root
+      password: example
       authentication-database: admin
     milvus:
-      url: ${MILVUS_URL}
-      host: ${MILVUS_HOST}
-      port: ${MILVUS_PORT}
-      defaultDatabaseName: ${MILVUS_DEFAULT_DATABASE}
-      defaultCollectionName: ${MILVUS_DEFAULT_COLLECTION}
+      url: ${MILVUS_URL:http://192.168.209.128:19530}
+      host: ${MILVUS_HOST:192.168.209.128}
+      port: ${MILVUS_PORT:19530}
+      defaultDatabaseName: ${MILVUS_DEFAULT_DATABASE:default}
+      defaultCollectionName: ${MILVUS_DEFAULT_COLLECTION:novelCollection}
   servlet:
     multipart:
       max-file-size: 20MB
   neo4j:
-    uri: ${NEO4J_URI}
+    uri: bolt://192.168.209.128:7687
     authentication:
-      username: ${NEO4J_USERNAME}
-      password: ${NEO4J_PASSWORD}
+      username: neo4j
+      password: password
 
 langchain4j:
   models:
@@ -49,17 +51,14 @@ langchain4j:
       timeout: 600000
     minimax:
       baseUrl: https://api.minimaxi.com/v1
-      apiKey: ${MINIMAX_API_KEY}
-      modelName: MiniMax-M2
+      apiKey: sk-cp-IESO6g5_bhrqDylthjt8e6t5ovc6Tml9FpOAKAMsnns0q5tbotk-kh-1N5UlSBZ-rsXCPo1mt3zE5igkx--mEylFzdaHH6bW1T8vv3uGHi_OkBLycKCY2rY
+      modelName: MiniMax-M2.5
       temperature: 0.7
 
 milvus:
-  uri: ${MILVUS_URL}
-  enable: true
-  open-log: true
-  db-name: ${MILVUS_DEFAULT_DATABASE}
-  packages:
-    - com.shuanglin.dao.milvus
+  uri: http://192.168.209.128:19530
+  username: ${MILVUS_USERNAME:}
+  password: ${MILVUS_PASSWORD:}
+  db-name: ${MILVUS_DATABASE:default}
+  message-collection-name: ${MILVUS_COLLECTION:chatEmbeddingCollection}
   top-k: 5
-  defaultDatabaseName: ${MILVUS_DEFAULT_DATABASE}
-  defaultCollectionName: ${MILVUS_DEFAULT_COLLECTION}

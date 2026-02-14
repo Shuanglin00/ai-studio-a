@@ -16,6 +16,9 @@ import io.milvus.v2.service.vector.request.InsertReq;
 import io.milvus.v2.service.vector.request.UpsertReq;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -36,12 +39,14 @@ import java.util.zip.ZipFile;
 
 @Service
 @Slf4j
+@Lazy
 public class DocumentInitializer {
 
 	@Resource
 	MilvusClientV2 milvusClientV2;
 
-	@Resource
+	@Autowired
+	@Qualifier("langchain4jEmbeddingModel")
 	EmbeddingModel embeddingModel;
 
 	@Resource

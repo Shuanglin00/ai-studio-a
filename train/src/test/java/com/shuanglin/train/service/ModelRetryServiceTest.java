@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.TestPropertySource;
 
+import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -129,7 +130,7 @@ public class ModelRetryServiceTest {
                 () -> {
                     attempts.incrementAndGet();
                     if (attempts.get() < 2) {
-                        throw new java.io.IOException("connection refused");
+                        throw new IOException("connection refused");
                     }
                     return "success";
                 },

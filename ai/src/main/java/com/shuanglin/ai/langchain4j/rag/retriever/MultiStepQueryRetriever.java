@@ -2,9 +2,9 @@ package com.shuanglin.ai.langchain4j.rag.retriever;
 
 import com.shuanglin.ai.langchain4j.assistant.DecomposeAssistant;
 import com.shuanglin.ai.langchain4j.config.vo.MilvusProperties;
+import com.shuanglin.ai.langchain4j.repository.MessageEmbeddingRepository;
 import com.shuanglin.dao.message.MessageStoreEntity;
 import com.shuanglin.dao.message.MessageStoreEntityRepository;
-import com.shuanglin.dao.milvus.MessageEmbeddingMapper;
 import com.shuanglin.enums.MongoDBConstant;
 import dev.langchain4j.data.embedding.Embedding;
 import dev.langchain4j.data.segment.TextSegment;
@@ -15,10 +15,8 @@ import dev.langchain4j.rag.content.retriever.ContentRetriever;
 import dev.langchain4j.rag.query.Query;
 import dev.langchain4j.service.AiServices;
 import io.milvus.v2.client.MilvusClientV2;
-import io.milvus.v2.service.vector.request.SearchReq;
 import io.milvus.v2.service.vector.request.data.BaseVector;
 import io.milvus.v2.service.vector.request.data.FloatVec;
-import io.milvus.v2.service.vector.response.SearchResp;
 import jakarta.annotation.Resource;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -43,7 +41,7 @@ public class MultiStepQueryRetriever implements ContentRetriever {
 
 	private final MilvusClientV2 milvusClientV2;
 
-	private final MessageEmbeddingMapper messageEmbeddingMapper;
+	private final MessageEmbeddingRepository messageEmbeddingRepository;
 
 	private final EmbeddingModel embeddingModel;
 
@@ -73,16 +71,12 @@ public class MultiStepQueryRetriever implements ContentRetriever {
 		log.info("[步骤 3] 正在对每个子问题进行并行检索...");
 		List<Embedding> content = embeddingModel.embedAll(subQueries).content();
 		List<BaseVector> floatVecs = content.stream().map(item-> new FloatVec(item.vector())).collect(Collectors.toList());
-		SearchReq searchRequest = SearchReq.builder()
-				.filterTemplateValues(Map.of("storeType", MongoDBConstant.StoreType.document.name()))
-				.data(floatVecs)
-				.topK(milvusProperties.getTopK())
-				.build();
-		SearchResp vecSearch = messageEmbeddingMapper.getClient().search(searchRequest);
-		List<String> messageIds = vecSearch.getSearchResults().stream()
-				.flatMap(Collection::stream)
-				.map(match -> match.getEntity().get("storeId").toString()) // 假设 ID 是字符串类型
-				.collect(Collectors.toList());
+		var searchResults = messageEmbeddingRepository.searchBatch(
+				floatVecs,
+				milvusProperties.getTopK(),
+				Map.of("storeType", MongoDBConstant.StoreType.document.name())
+		);
+		List<String> messageIds = messageEmbeddingRepository.extractStoreIds(searchResults);
 
 		log.info("[Step 3] Extracted memory IDs from search result: {}", messageIds);
 
