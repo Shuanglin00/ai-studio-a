@@ -16,6 +16,11 @@ public class OneBotApiProperties {
     private String baseUrl = "http://127.0.0.1:3000";
 
     /**
+     * 访问令牌
+     */
+    private String accessToken;
+
+    /**
      * 请求超时时间（毫秒）
      */
     private Integer timeout = 5000;

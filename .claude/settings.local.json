@@ -24,7 +24,10 @@
       "Skill(everything-claude-code:checkpoint)",
       "Bash(docker build:*)",
       "Bash(git push:*)",
-      "Bash(gh run list:*)"
+      "Bash(gh run list:*)",
+      "Bash(nc:*)",
+      "Bash(powershell -ExecutionPolicy Bypass -File D:/project/ai-studio/test-connection.ps1)",
+      "Bash(powershell:*)"
     ]
   }
 }

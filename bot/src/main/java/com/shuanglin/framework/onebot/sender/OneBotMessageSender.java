@@ -74,6 +74,11 @@ public class OneBotMessageSender implements MessageSender {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
+        // 添加 Authorization header
+        if (oneBotApiProperties.getAccessToken() != null && !oneBotApiProperties.getAccessToken().isEmpty()) {
+            headers.set("Authorization", "Bearer " + oneBotApiProperties.getAccessToken());
+        }
+
         HttpEntity<String> request = new HttpEntity<>(body.toString(), headers);
         ResponseEntity<String> response = restTemplate.exchange(
                 url,

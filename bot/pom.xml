@@ -105,6 +105,13 @@
                     <argLine>--add-opens java.base/java.time=ALL-UNNAMED</argLine>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <mainClass>com.shuanglin.BotStart</mainClass>
+                </configuration>
+            </plugin>
         </plugins>
         <resources>
             <!-- 1. 模块内配置（作为默认配置） -->

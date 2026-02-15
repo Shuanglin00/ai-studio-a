@@ -28,6 +28,7 @@ spring:
 onebot:
   api:
     base-url: ${ONEBOT_API_URL}
+    access-token: ${ONEBOT_ACCESS_TOKEN:}
     timeout: 5000
     retry:
       max-attempts: 3

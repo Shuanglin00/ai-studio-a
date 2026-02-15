@@ -7,7 +7,7 @@ spring:
     name: catBot-sit
   data:
     mongodb:
-      host: ${DEV_SERVER_HOST}
+      host: my-mongodb
       port: 27017
       database: catBot_sit
       auto-index-creation: true
@@ -15,7 +15,7 @@ spring:
       password: ${DB_PASSWORD}
       authentication-database: admin
     redis:
-      host: ${DEV_SERVER_HOST}
+      host: my-redis
       port: 6379
 
 ai:
@@ -25,7 +25,7 @@ ai:
     qwen:
       api-key: ${QWEN_API_KEY}
     ollama:
-      url: http://${DEV_SERVER_HOST}:11434
+      url: http://host.docker.internal:11434
       temperature: 0.5
   rag:
     max-results: 5
@@ -41,19 +41,20 @@ train:
     max-models: 10
 
 milvus:
-  host: ${DEV_SERVER_HOST}
+  host: standalone
   port: 19530
   collection-name: message_embeddings_sit
   enable: true
 
 neo4j:
-  uri: bolt://${DEV_SERVER_HOST}:7687
+  uri: bolt://my-neo4j:7687
   username: neo4j
   password: ${DB_PASSWORD}
 
 onebot:
   api:
-    base-url: http://${DEV_SERVER_HOST}:3000
+    base-url: http://192.168.31.150:3000
+    access-token: "123456"
     timeout: 5000
     retry:
       max-attempts: 3
@@ -64,6 +65,8 @@ bot:
   framework:
     permission:
       enabled: true
+  pig:
+    image-path: /app/pigs
   log:
     level: DEBUG
     path: /app/logs
