@@ -1,0 +1,18 @@
+spring:
+  main:
+    web-application-type: servlet
+    banner-mode: off
+  ai:
+    mcp:
+      server:
+        stdio: false
+        name: mcp-test-server
+        version: 1.0.0
+
+server:
+  port: 0
+
+logging:
+  level:
+    com.shuanglin.mcp: DEBUG
+    org.springframework.ai.mcp: DEBUG
